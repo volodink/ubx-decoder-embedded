@@ -8,12 +8,14 @@
 #define SYS_LED 13
 
 /**
+ *  \brief Software serial port object
  *  \author volodink
  */
 SoftwareSerial serial(8,9);
 
 /**
- * \author volodink
+ *  \brief Starts only 1 time after reset
+ *  \author volodink
  */
 void setup() {
     // setup hardware serial
@@ -26,6 +28,7 @@ void setup() {
 }
 
 /**
+ *  \brief Running in the infinite loop
  *  \author volodink
  */
 void loop() {
