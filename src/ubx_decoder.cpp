@@ -18,9 +18,9 @@ SoftwareSerial serial(8,9);
  *  \author volodink
  */
 void setup() {
-    // setup hardware serial
+    // setup hardware serial for GPS side
     Serial.begin(57600);
-    // setup software serial
+    // setup software serial for PC side
     serial.begin(9600);
 
     // set pins direction
