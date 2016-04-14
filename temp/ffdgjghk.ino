@@ -94,7 +94,7 @@ void getUBX(void) //
    case 8:
       {
          CK_BU = c;
-        if (CK_A == CK_AU && CK_B == CK_BU)
+        if (CK_A == CK_AU && CK_B == CK_BU) //сравнение контрольной суммы
         {
            mySerial.print("Ypa!");
           gotUBX = true;
