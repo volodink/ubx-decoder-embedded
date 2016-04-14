@@ -16,12 +16,12 @@ void setup() {
 Serial.begin(57600);
 mySerial.begin(9600);
 }
-void ubx_checksum(byte ubx_data)
+void ubx_checksum(byte ubx_data) //рассчет контрольной суммы
 {
   CK_A+=ubx_data;
   CK_B+=CK_A;
 }
-void getUBX(void)
+void getUBX(void) //
 {  
   if (Serial.available())
   {
