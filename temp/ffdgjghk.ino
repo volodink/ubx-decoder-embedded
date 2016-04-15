@@ -13,7 +13,7 @@ int16_t meslen = 0;
 int count = 0;
 boolean gotUBX = false;
 void setup() {
-Serial.begin(57600);
+Serial.begin(58824);   // magic !!  try also: 57601 
 mySerial.begin(9600);
 }
 void ubx_checksum(byte ubx_data) //рассчет контрольной суммы
