@@ -66,7 +66,7 @@ void decodeUBX(void)
         }
     }
   }
-  if (POSLLH == 1 && VELNED == 1)
+  if (POSLLH == 1 || VELNED == 1)
   {
     mySerial.print("Ypa!");
   }
