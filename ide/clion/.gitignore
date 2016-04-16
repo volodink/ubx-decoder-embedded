@@ -1,9 +1,3 @@
 .pioenvs
 CMakeListsPrivate.txt
 
-### CLION ###
-*.iml
-*.ipr
-*.iws
-.idea/workspace.xml
-.idea/tasks.xml
