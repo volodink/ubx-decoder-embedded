@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include <SoftwareSerial.h>
+
+#include <AltSoftSerial.h>
 
 /**
  *  \author volodink
@@ -7,11 +8,18 @@
  */
 #define SYS_LED 13
 
+
+void getUBX();
+
 /**
  *  \brief Software serial port object
  *  \author volodink
  */
-SoftwareSerial serial(8,9);
+AltSoftSerial mySerial;
+
+bool gotUBX = false;
+
+
 
 /**
  *  \brief Starts only 1 time after reset
@@ -21,7 +29,7 @@ void setup() {
     // setup hardware serial for GPS side
     Serial.begin(57600);
     // setup software serial for PC side
-    serial.begin(9600);
+    mySerial.begin(9600);
 
     // set pins direction
     pinMode(SYS_LED, OUTPUT);
@@ -32,6 +40,12 @@ void setup() {
  *  \author volodink
  */
 void loop() {
-    serial.println("hello");
-    delay(1000);
+    getUBX();
+    if (gotUBX == true) {
+        mySerial.println("hello");
+    }
+}
+
+void getUBX() {
+
 }
