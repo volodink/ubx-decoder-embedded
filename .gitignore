@@ -1,5 +1,7 @@
 .pioenvs
 
+*.md~
+
 ### CLION ###
 *.iml
 *.ipr
