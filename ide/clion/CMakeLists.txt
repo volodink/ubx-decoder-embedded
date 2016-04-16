@@ -46,9 +46,6 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-#
-# To enable code auto-completion, please specify path
-# to main source file (*.c, *.cpp) and uncomment line below
-#
 add_executable(clion
-               src/ubx_decoder.cpp)
+    src/ubx_decoder.cpp
+)
