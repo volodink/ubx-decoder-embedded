@@ -11,7 +11,9 @@ platformio init -b nanoatmega328 --ide clion
 
 ### Формат выдачи
 
+```
 AlatBlonCheightDspeedEsatallFsatsolGfixtype\n
+```
 
 lat      - широта
 lon      - долгота
