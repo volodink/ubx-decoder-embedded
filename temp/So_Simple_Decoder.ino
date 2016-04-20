@@ -1,5 +1,3 @@
-//#include <AltSoftwareSerial.h>
-//SoftwareSerial mySerial(10, 11);
 #include <AltSoftSerial.h>
 
 AltSoftSerial mySerial;
@@ -17,8 +15,19 @@ int count = 0;
 boolean gotUBX = false;
 boolean POSLLH = 0;
 boolean SVINFO = 0;
+boolean SOL = 0;
 boolean VELNED = 0;
 char GPSdata[40];
+long int longitude;
+float longitudef;
+long int latitude;
+float latitudef;
+long int height;
+float heightf;
+long int speed3;
+float speed3f;
+short int FixType;
+short int NumSV;
 
 void ubx_checksum(byte ubx_data) //рассчет контрольной суммы
 {
@@ -128,72 +137,83 @@ void decodeUBX(void)
     {
       case 0x02:  //NAV-POSLLH
         {
-          GPSdata[0] = message[4];    //longitude-0
-          GPSdata[1] = message[5];    //longitude-1
-          GPSdata[2] = message[6];    //longitude-2
-          GPSdata[3] = message[7];    //longitude-3
+          longitude = 0xFF & message[7];       //долгота
+          longitude = longitude << 8;
+          longitude |= message[6];
+          longitude = longitude << 8;
+          longitude |= message[5];
+          longitude = longitude << 8;
+          longitude |= message[4];
+          longitudef = longitude / 10000000.0;
 
-          GPSdata[4] = message[8];    //latitude-0
-          GPSdata[5] = message[9];    //latitude-1
-          GPSdata[6] = message[10];   //latitude-2
-          GPSdata[7] = message[11];   //latitude-3
+          latitude = 0xFF & message[11];       //широта
+          latitude = latitude << 8;
+          latitude |= message[10];
+          latitude = latitude << 8;
+          latitude |= message[9];
+          latitude = latitude << 8;
+          latitude |= message[8];
+          latitudef = latitude / 10000000.0;
 
-          GPSdata[8] = message[16];   //height-0
-          GPSdata[9] = message[17];   //height-1
-          GPSdata[10] = message[18];  //height-2
-          GPSdata[11] = message[19];  //height-3
-
-          GPSdata[12] = message[20];  //horAcc-0
-          GPSdata[13] = message[21];  //horAcc-1
-          GPSdata[14] = message[22];  //horAcc-2
-          GPSdata[15] = message[23];  //horAcc-3
-
-          GPSdata[16] = message[24];  //vertAcc-0
-          GPSdata[17] = message[25];  //vertAcc-1
-          GPSdata[18] = message[26];  //vertAcc-2
-          GPSdata[19] = message[27];  //vertAcc-3
-
+          height = 0xFF & message[19];         //высота
+          height = height << 8;
+          height |= message[18];
+          height = height << 8;
+          height |= message[17];
+          height = height << 8;
+          height |= message[16];
+          heightf = height / 1000.0;
+          
           POSLLH = true;
           break;
         }
       case 0x12:  //NAV-VELNED
         {
-          GPSdata[20] = message[16];  //speed-0
-          GPSdata[21] = message[17];  //speed-1
-          GPSdata[22] = message[18];  //speed-2
-          GPSdata[23] = message[19];  //speed-3
-
-          GPSdata[24] = message[20];  //gSpeed-0
-          GPSdata[25] = message[21];  //gSpeed-1
-          GPSdata[26] = message[22];  //gSpeed-2
-          GPSdata[27] = message[23];  //gSpeed-3
-
-          GPSdata[28] = message[24];  //heading-0
-          GPSdata[29] = message[25];  //heading-1
-          GPSdata[30] = message[26];  //heading-2
-          GPSdata[31] = message[27];  //heading-3
-
-          GPSdata[32] = message[28];  //speedAcc-0
-          GPSdata[33] = message[29];  //speedAcc-1
-          GPSdata[34] = message[30];  //speedAcc-2
-          GPSdata[35] = message[31];  //speedAcc-3
-
-          GPSdata[36] = message[32];  //headingAcc-0
-          GPSdata[37] = message[33];  //headingAcc-1
-          GPSdata[38] = message[34];  //headingAcc-2
-          GPSdata[39] = message[35];  //headingAcc-3
+          speed3 = 0xFF & message[19];        //скорость
+          speed3 = speed3 << 8;
+          speed3 |= message[18];
+          speed3 = speed3 << 8;
+          speed3 |= message[17];
+          speed3 = speed3 << 8;
+          speed3 |= message[16];
+          speed3f = speed3 / 100.0;
 
           VELNED = true;
           break;
         }
+      case 0x06:  // NAV-SOL
+        {
+          NumSV = message[47];          //кол-во спутников в решении
+          FixType |= message[10];        //тип фикса
+   //     mySerial.print(message[47]);
+          
+          SOL = true;
+          break;
+        }
     }
   }
-  if (POSLLH == 1 && VELNED == 1)
-  {
-    mySerial.println("Ypa!");
-    POSLLH = 0;
-    VELNED = 0;
-  }
+}
+
+void sendGPS(void)
+{
+  mySerial.print("A");
+  mySerial.print(longitudef, 5);
+  mySerial.print("  B");
+  mySerial.print(latitudef, 5);
+  mySerial.print("  C");
+  mySerial.print(heightf, 3);
+  mySerial.print("  D");
+  mySerial.print(speed3f, 3);
+  mySerial.print("  E");
+  mySerial.print(NumSV);
+  mySerial.print("  F");
+  mySerial.println(FixType);
+  longitude = 0;
+  latitude = 0;
+  height = 0;
+  speed3 = 0;
+  NumSV = 0;
+  FixType = 0;
 }
 
 void clearVars(void)
@@ -220,8 +240,15 @@ void loop()
   getUBX();
   if (gotUBX == true)
   {
-    mySerial.println("Got it!");
+    mySerial.print("");
     decodeUBX();
+    if (POSLLH == 1 && VELNED == 1)
+    {
+      sendGPS();
+      POSLLH = 0;
+      VELNED = 0;
+      SOL = 0;
+    }
     clearVars();
     gotUBX = false;
   }
