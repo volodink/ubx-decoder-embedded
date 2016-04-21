@@ -8,3 +8,5 @@
 *.iws
 workspace.xml
 tasks.xml
+
+docs
