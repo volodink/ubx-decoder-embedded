@@ -1,72 +1,69 @@
-#include <Arduino.h>
-
 #include <AltSoftSerial.h>
-
-/**
- *  \author volodink
- *  \brief define Arduino led on pin 13 as system led for status display (blink me twice, if you hear me)
- */
-#define SYS_LED 13
-
-void getUBX();
-void decodeUBX();
-void ubx_checksum(byte ubx_data); //рассчет контрольной суммы
-void clearVars(void);
-
 /**
  *  \brief Software serial port object
  *  \author volodink
  */
 AltSoftSerial mySerial;
 
-int gpsStep = 0;
-
-int count = 0;
-
+int c = 0; /**< The variable which is assigned received GPS data
+ * for later comparison in getUBX
+ */
+uint8_t message[60]; /**< The maximum Byte Offset */
+/**
+ * The first argument to calculate the checksum
+ */
 uint8_t CK_A = 0, CK_B = 0;
-uint8_t CK_AU = 0, CK_BU = 0;
-
-uint8_t UBX_id = 0;
-uint8_t UBX_class = 0;
-
+/**< The second argument to calculate the checksum */
+/**
+ * The first argument to comparison the checksum
+ */
+uint8_t CK_AU = 0, CK_BU = 0; /**< The second argument to comparison the checksum */
+int gpsStep = 0; /**< If the data suits us, this parameter makes the step */
+uint8_t UBX_id = 0; /**< Message ID */
+uint8_t UBX_class = 0; /**< Message class */
 uint8_t meslenL = 0;
 uint8_t meslenH = 0;
 int16_t meslen = 0;
-
-bool gotUBX = false;
-bool POSLLH = 0;
-bool VELNED = 0;
-
-uint8_t message[60];
-uint8_t GPSdata[40];
-
-/**
- *  \brief Starts only 1 time after reset
- *  \author volodink
+int count = 0;
+boolean gotUBX = false; /**< The parameter which checks getting data */
+boolean POSLLH = 0; /**< Geodetic Position Solution; This message outputs
+ * the Geodetic position in the currently selected Ellipsoid.
  */
-void setup() {
-    // setup hardware serial for GPS side
-    Serial.begin(57600);
-    // setup software serial for PC side
-    mySerial.begin(9600);
-
-    // set pins direction
-    pinMode(SYS_LED, OUTPUT);
-}
-
-/**
- *  \brief Running in the infinite loop
- *  \author volodink
+boolean SVINFO = 0;/**< Space Vehicle Information */
+boolean SOL = 0;/**< Navigation Solution Information; This message combines Position,
+ * velocity and time solution in ECEF, including accuracy figures
  */
-void loop() {
-    getUBX();
-    if (gotUBX) {
-        decodeUBX();
-        clearVars();
-        gotUBX = false;
-    }
+boolean VELNED = 0;/**< Velocity Solution in NED */
+char GPSdata[40];
+long int longitude; /**< Longitude */
+float longitudef; /**< Output longitude */
+long int latitude; /**< Latitude */
+float latitudef; /**< Output latitude */
+long int height; /**< Height */
+float heightf; /**< Output height */
+long int speed3; /**< Longitude */
+float speed3f; /**< Speed */
+/**
+ * GPSfix Type, range 0..5;
+ * Is a measure of the communication
+ * required for a GPS receiver to acquire
+ * satellite signals and navigation data
+ */
+short int FixType;
+short int NumSV; /**< Number of SVs used in Nav Solution */
+/**
+ * \brief uBlox checksum algorithm
+ * \param ubx_data Contains the data over
+ * which the checksum is to be calculated.
+ */
+void ubx_checksum(byte ubx_data) //рассчет контрольной суммы
+{
+    CK_A += ubx_data;
+    CK_B += CK_A;
 }
-
+/**
+ * \brief Getting and comparing data
+ */
 void getUBX(void) //Получаем пакет и делаем с ним штуки
 {
     if (Serial.available())
@@ -78,6 +75,7 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
             {
                 if (c == 0xB5){
                     gpsStep++;
+                    //         mySerial.print("0");
                 }
                 break;
             }
@@ -85,9 +83,11 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
             {
                 if (c == 0x62){
                     gpsStep++;
+                    //          mySerial.print("1");
                 }
                 else{
                     gpsStep = 0;
+                    //        mySerial.println("not62");
                 }
                 break;
             }
@@ -96,6 +96,7 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
                 UBX_class = c;
                 ubx_checksum(c);
                 gpsStep++;
+                //        mySerial.print("2");
                 break;
             }
             case 3:
@@ -103,6 +104,7 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
                 UBX_id = c;
                 ubx_checksum(c);
                 gpsStep++;
+                //         mySerial.print("3");
                 break;
             }
             case 4:
@@ -110,6 +112,7 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
                 meslenL = c;
                 ubx_checksum(c);
                 gpsStep++;
+                //           mySerial.print("ml");
                 break;
             }
             case 5:
@@ -120,6 +123,7 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
                 meslen = 0xFF & meslenL;
                 meslen |= meslenH << 8;
                 count = 0;
+                //          mySerial.print("mh");
                 break;
             }
             case 6:
@@ -147,21 +151,16 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
                 {
                     gotUBX = true;
                 }
+                //    clearVars();
                 break;
             }
-            default:
-                break;
-
         }
     }
 }
 
-void ubx_checksum(byte ubx_data) //рассчет контрольной суммы
-{
-    CK_A += ubx_data;
-    CK_B += CK_A;
-}
-
+/**
+ * \brief UBX-decoder
+ */
 void decodeUBX(void)
 {
     if (UBX_class == 0x01)
@@ -170,78 +169,89 @@ void decodeUBX(void)
         {
             case 0x02:  //NAV-POSLLH
             {
-                GPSdata[0] = message[4];    //longitude-0
-                GPSdata[1] = message[5];    //longitude-1
-                GPSdata[2] = message[6];    //longitude-2
-                GPSdata[3] = message[7];    //longitude-3
+                longitude = 0xFF & message[7];       //долгота
+                longitude = longitude << 8;
+                longitude |= message[6];
+                longitude = longitude << 8;
+                longitude |= message[5];
+                longitude = longitude << 8;
+                longitude |= message[4];
+                longitudef = longitude / 10000000.0;
 
-                GPSdata[4] = message[8];    //latitude-0
-                GPSdata[5] = message[9];    //latitude-1
-                GPSdata[6] = message[10];   //latitude-2
-                GPSdata[7] = message[11];   //latitude-3
+                latitude = 0xFF & message[11];       //широта
+                latitude = latitude << 8;
+                latitude |= message[10];
+                latitude = latitude << 8;
+                latitude |= message[9];
+                latitude = latitude << 8;
+                latitude |= message[8];
+                latitudef = latitude / 10000000.0;
 
-                GPSdata[8] = message[16];   //height-0
-                GPSdata[9] = message[17];   //height-1
-                GPSdata[10] = message[18];  //height-2
-                GPSdata[11] = message[19];  //height-3
-
-                GPSdata[12] = message[20];  //horAcc-0
-                GPSdata[13] = message[21];  //horAcc-1
-                GPSdata[14] = message[22];  //horAcc-2
-                GPSdata[15] = message[23];  //horAcc-3
-
-                GPSdata[16] = message[24];  //vertAcc-0
-                GPSdata[17] = message[25];  //vertAcc-1
-                GPSdata[18] = message[26];  //vertAcc-2
-                GPSdata[19] = message[27];  //vertAcc-3
+                height = 0xFF & message[19];         //высота
+                height = height << 8;
+                height |= message[18];
+                height = height << 8;
+                height |= message[17];
+                height = height << 8;
+                height |= message[16];
+                heightf = height / 1000.0;
 
                 POSLLH = true;
                 break;
             }
             case 0x12:  //NAV-VELNED
             {
-                GPSdata[20] = message[16];  //speed-0
-                GPSdata[21] = message[17];  //speed-1
-                GPSdata[22] = message[18];  //speed-2
-                GPSdata[23] = message[19];  //speed-3
-
-                GPSdata[24] = message[20];  //gSpeed-0
-                GPSdata[25] = message[21];  //gSpeed-1
-                GPSdata[26] = message[22];  //gSpeed-2
-                GPSdata[27] = message[23];  //gSpeed-3
-
-                GPSdata[28] = message[24];  //heading-0
-                GPSdata[29] = message[25];  //heading-1
-                GPSdata[30] = message[26];  //heading-2
-                GPSdata[31] = message[27];  //heading-3
-
-                GPSdata[32] = message[28];  //speedAcc-0
-                GPSdata[33] = message[29];  //speedAcc-1
-                GPSdata[34] = message[30];  //speedAcc-2
-                GPSdata[35] = message[31];  //speedAcc-3
-
-                GPSdata[36] = message[32];  //headingAcc-0
-                GPSdata[37] = message[33];  //headingAcc-1
-                GPSdata[38] = message[34];  //headingAcc-2
-                GPSdata[39] = message[35];  //headingAcc-3
+                speed3 = 0xFF & message[19];        //скорость
+                speed3 = speed3 << 8;
+                speed3 |= message[18];
+                speed3 = speed3 << 8;
+                speed3 |= message[17];
+                speed3 = speed3 << 8;
+                speed3 |= message[16];
+                speed3f = speed3 / 100.0;
 
                 VELNED = true;
                 break;
             }
+            case 0x06:  // NAV-SOL
+            {
+                NumSV = message[47];          //кол-во спутников в решении
+                FixType |= message[10];        //тип фикса
+                //     mySerial.print(message[47]);
 
-            default:
+                SOL = true;
                 break;
+            }
         }
     }
-
-    if (POSLLH == 1 && VELNED == 1)
-    {
-        mySerial.println("Ypa!");
-        POSLLH = false;
-        VELNED = false;
-    }
 }
-
+/**
+* \brief Function output data
+*/
+void sendGPS(void)
+{
+    mySerial.print("A");
+    mySerial.print(longitudef, 5);
+    mySerial.print("  B");
+    mySerial.print(latitudef, 5);
+    mySerial.print("  C");
+    mySerial.print(heightf, 3);
+    mySerial.print("  D");
+    mySerial.print(speed3f, 3);
+    mySerial.print("  E");
+    mySerial.print(NumSV);
+    mySerial.print("  F");
+    mySerial.println(FixType);
+    longitude = 0;
+    latitude = 0;
+    height = 0;
+    speed3 = 0;
+    NumSV = 0;
+    FixType = 0;
+}
+/**
+* \brief Data cleansing
+*/
 void clearVars(void)
 {
     gpsStep = 0;
@@ -255,3 +265,32 @@ void clearVars(void)
     CK_B = 0;
     memset(message, 0, 60);
 }
+/**
+ *  \brief Starts only 1 time after reset
+ *  \author volodink
+ */
+void setup() {
+    Serial.begin(57600); /**< setup hardware serial for GPS side */
+    mySerial.begin(9600);/**< setup hardware serial for GPS side */
+}
+/**
+ *  \brief Running in the infinite loop
+ *  \author volodink
+ */
+void loop()
+{
+    getUBX();
+    if (gotUBX == true)
+    {
+        mySerial.print("");
+        decodeUBX();
+        if (POSLLH == 1 && VELNED == 1)
+        {
+            sendGPS();
+            POSLLH = 0;
+            VELNED = 0;
+            SOL = 0;
+        }
+        clearVars();
+        gotUBX = false;
+    }
