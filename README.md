@@ -22,7 +22,10 @@ fixtype - тип Fix'a (0-все плохо, 5 - не бывает)
 ### Для работы с проектом из CLion:
 
 1. Установить CLion
+
+```
 http://www.jetbrains.com/clion/ 
+```
 
 2. Установить Platformio
 
