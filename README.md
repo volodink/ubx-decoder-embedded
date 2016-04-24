@@ -21,13 +21,13 @@ fixtype - тип Fix'a (0-все плохо, 5 - не бывает)
 
 ### Для работы с проектом из CLion:
 
-1. Установить CLion
+Установить CLion
 
 ```
 http://www.jetbrains.com/clion/ 
 ```
 
-2. Установить Platformio
+Установить Platformio
 
 ```
 sudo apt-get install python-dev python-pip
@@ -39,7 +39,7 @@ platformio lib install 73
 platformio lib install 433
 ```
 
-3. В папке ide/clion выполнить:
+В папке ide/clion выполнить:
 
 ```
 platformio init -b nanoatmega328 --ide clion
