@@ -294,3 +294,4 @@ void loop()
         clearVars();
         gotUBX = false;
     }
+}
