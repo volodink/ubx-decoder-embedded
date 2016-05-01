@@ -6,4 +6,5 @@
     <libraryRoots />
     <excludeRoots />
   </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 2.7.11+ (/usr/bin/python2.7)" project-jdk-type="Python SDK" />
 </project>

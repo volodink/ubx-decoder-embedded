@@ -7,7 +7,7 @@ add_definitions(-DF_CPU=16000000L)
 add_definitions(-DARDUINO_ARCH_AVR)
 add_definitions(-DARDUINO_AVR_NANO)
 add_definitions(-DARDUINO=10608)
-add_definitions(-DPLATFORMIO=020806)
+add_definitions(-DPLATFORMIO=020900)
 add_definitions(-D__AVR_ATmega328P__)
 
 add_custom_target(

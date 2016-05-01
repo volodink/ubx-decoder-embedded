@@ -1,14 +1,14 @@
 #include <AltSoftSerial.h>
+void clearVars(void);
+
 /**
  *  \brief Software serial port object
  *  \author volodink
  */
 AltSoftSerial mySerial;
 
-int c = 0; /**< The variable which is assigned received GPS data
- * for later comparison in getUBX
- */
-uint8_t message[60]; /**< The maximum Byte Offset */
+volatile uint8_t message[60];
+
 /**
  * The first argument to calculate the checksum
  */
@@ -43,14 +43,17 @@ long int height; /**< Height */
 float heightf; /**< Output height */
 long int speed3; /**< Longitude */
 float speed3f; /**< Speed */
+char bufer[20];
+
 /**
  * GPSfix Type, range 0..5;
  * Is a measure of the communication
  * required for a GPS receiver to acquire
  * satellite signals and navigation data
  */
-short int FixType;
-short int NumSV; /**< Number of SVs used in Nav Solution */
+unsigned char FixType = 22;
+unsigned char NumSVs = 33; /**< Number of SVs used in Nav Solution */
+
 /**
  * \brief uBlox checksum algorithm
  * \param ubx_data Contains the data over
@@ -61,73 +64,77 @@ void ubx_checksum(byte ubx_data) //рассчет контрольной сум�
     CK_A += ubx_data;
     CK_B += CK_A;
 }
+
 /**
  * \brief Getting and comparing data
  */
 void getUBX(void) //Получаем пакет и делаем с ним штуки
 {
-    if (Serial.available())
+    if (Serial.available() > 0)
     {
         uint8_t c = Serial.read();
+        mySerial.print(c, HEX); mySerial.print(" ");
         switch (gpsStep)
         {
             case 0:
-            {
+            
                 if (c == 0xB5){
                     gpsStep++;
-                    //         mySerial.print("0");
+                    mySerial.print("Start 0 ");
                 }
                 break;
-            }
+            
             case 1:
-            {
+            
                 if (c == 0x62){
                     gpsStep++;
-                    //          mySerial.print("1");
+                              mySerial.print("Start 1 ");
                 }
                 else{
                     gpsStep = 0;
-                    //        mySerial.println("not62");
+                            mySerial.println(" Error not62 ");
                 }
                 break;
-            }
+            
             case 2:
-            {
+            
                 UBX_class = c;
                 ubx_checksum(c);
                 gpsStep++;
-                //        mySerial.print("2");
+                       mySerial.println(""); mySerial.print(" UBX_CLASS = "); mySerial.println(UBX_class);
                 break;
-            }
+            
             case 3:
-            {
+            
                 UBX_id = c;
                 ubx_checksum(c);
                 gpsStep++;
-                //         mySerial.print("3");
+                      mySerial.print(" 3 ");
                 break;
-            }
+            
             case 4:
-            {
+            
                 meslenL = c;
                 ubx_checksum(c);
                 gpsStep++;
-                //           mySerial.print("ml");
+                     mySerial.print(" ml ");
                 break;
-            }
+            
             case 5:
-            {
+            
                 meslenH = c;
                 ubx_checksum(c);
                 gpsStep++;
                 meslen = 0xFF & meslenL;
                 meslen |= meslenH << 8;
                 count = 0;
-                //          mySerial.print("mh");
+                     mySerial.print(" mh ");
+                     mySerial.print("mlen=");
+		     mySerial.print(meslen);
                 break;
-            }
+            
             case 6:
-            {
+            
                 message[count] = c;
                 ubx_checksum(c);
                 count++;
@@ -137,23 +144,37 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
                     count = 0;
                 }
                 break;
-            }
+            
             case 7:
-            {
+            
                 CK_AU = c;
                 gpsStep++;
-                break;
-            }
+
+                                
+		break;
+            
             case 8:
-            {
+            
                 CK_BU = c;
+		
+	
                 if (CK_A == CK_AU && CK_B == CK_BU) //сравнение контрольной суммы
                 {
                     gotUBX = true;
-                }
-                //    clearVars();
-                break;
-            }
+                
+		}
+
+		mySerial.println("");
+		mySerial.print(" ck_au = ");mySerial.println(CK_AU, HEX);
+		mySerial.print(" ck_bu = ");mySerial.println(CK_BU, HEX);
+                mySerial.print(" cka   = ");mySerial.println(CK_A,  HEX);
+                mySerial.print(" ckb   = ");mySerial.println(CK_B,  HEX);
+	
+                //clearVars();
+               
+                
+		break;
+            
         }
     }
 }
@@ -168,7 +189,6 @@ void decodeUBX(void)
         switch (UBX_id)
         {
             case 0x02:  //NAV-POSLLH
-            {
                 longitude = 0xFF & message[7];       //долгота
                 longitude = longitude << 8;
                 longitude |= message[6];
@@ -197,10 +217,9 @@ void decodeUBX(void)
                 heightf = height / 1000.0;
 
                 POSLLH = true;
+		mySerial.println("POSLLH got.");
                 break;
-            }
             case 0x12:  //NAV-VELNED
-            {
                 speed3 = 0xFF & message[19];        //скорость
                 speed3 = speed3 << 8;
                 speed3 |= message[18];
@@ -211,18 +230,27 @@ void decodeUBX(void)
                 speed3f = speed3 / 100.0;
 
                 VELNED = true;
+		mySerial.println("VELNED got.");
                 break;
-            }
             case 0x06:  // NAV-SOL
-            {
-                NumSV = message[47];          //кол-во спутников в решении
-                FixType |= message[10];        //тип фикса
-                //     mySerial.print(message[47]);
+              NumSVs = message[47];          //кол-во спутников в решении
+              FixType = message[10];        //тип фикса
 
-                SOL = true;
-                break;
-            }
+              SOL = true;
+	      
+              mySerial.println("SOL got.");
+              
+              break;
+            default:
+	          mySerial.print("Unknown ubx id = ");
+	          mySerial.println(UBX_id);
+		
         }
+    }
+    else
+    {
+    	mySerial.print("Unknown ubx class = ");
+	    mySerial.println(UBX_class);
     }
 }
 /**
@@ -231,22 +259,28 @@ void decodeUBX(void)
 void sendGPS(void)
 {
     mySerial.print("A");
-    mySerial.print(longitudef, 5);
+    mySerial.print(longitudef);
+
     mySerial.print("  B");
-    mySerial.print(latitudef, 5);
+    mySerial.print(latitudef);
+
     mySerial.print("  C");
-    mySerial.print(heightf, 3);
+    mySerial.print(heightf);
+    
     mySerial.print("  D");
-    mySerial.print(speed3f, 3);
+    mySerial.print(speed3f);
+    
     mySerial.print("  E");
-    mySerial.print(NumSV);
+    mySerial.print(NumSVs);
+    
     mySerial.print("  F");
     mySerial.println(FixType);
+    
     longitude = 0;
     latitude = 0;
     height = 0;
     speed3 = 0;
-    NumSV = 0;
+    NumSVs = 0;
     FixType = 0;
 }
 /**
@@ -263,7 +297,10 @@ void clearVars(void)
     CK_BU = 0;
     CK_A = 0;
     CK_B = 0;
-    memset(message, 0, 60);
+    for(int i = 0; i < 60; i++)
+    {
+      message[i] = 0;
+    }
 }
 /**
  *  \brief Starts only 1 time after reset
@@ -272,6 +309,8 @@ void clearVars(void)
 void setup() {
     Serial.begin(57600); /**< setup hardware serial for GPS side */
     mySerial.begin(9600);/**< setup hardware serial for GPS side */
+    mySerial.println("UBX ready.");
+    clearVars();
 }
 /**
  *  \brief Running in the infinite loop
@@ -279,17 +318,22 @@ void setup() {
  */
 void loop()
 {
+    //mySerial.println("enter loop");
+        
     getUBX();
     if (gotUBX == true)
     {
-        mySerial.print("");
+        mySerial.println("got ubx packet");
         decodeUBX();
-        if (POSLLH == 1 && VELNED == 1)
-        {
+        mySerial.println("ubx packet decoded");
+        if (POSLLH == 1)
+        { 
+
+            mySerial.println("if posllh == 1");
             sendGPS();
             POSLLH = 0;
-            VELNED = 0;
-            SOL = 0;
+            //VELNED = 0;
+            //SOL = 0;
         }
         clearVars();
         gotUBX = false;
