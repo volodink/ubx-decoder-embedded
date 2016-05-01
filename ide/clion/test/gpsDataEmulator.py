@@ -7,9 +7,14 @@ id2 = 0x02
 lenh = 0x1c
 lenl = 0x00
 
+prefixRandomBytes = array('B', [0x31, 0x31, 0x31, 0x31, 0x31])
+
 # construct message
 dataArray = array('B', [])
 
+#add some random bytes == noise or line crap
+
+#construct first packet
 dataArray.append(start_byte1)
 dataArray.append(start_byte2)
 dataArray.append(id1)
@@ -35,11 +40,23 @@ CK_B &= 0xFF
 dataArray.append(CK_A)
 dataArray.append(CK_B)
 
+# create file and write message in it
+dataFile = open('data.txt', 'wb')
+prefixRandomBytes.tofile(dataFile)
+dataArray.tofile(dataFile)
+prefixRandomBytes.tofile(dataFile)
+prefixRandomBytes.tofile(dataFile)
+dataArray.tofile(dataFile)
+prefixRandomBytes.tofile(dataFile)
+dataArray.tofile(dataFile)
+prefixRandomBytes.tofile(dataFile)
+dataFile.close()
+
 #show array
+for i, a in enumerate(prefixRandomBytes):
+    print i, hex(a)
+
 for i, a in enumerate(dataArray):
     print i, hex(a)
 
-# create file and write message in it
-dataFile = open('data.txt', 'wb')
-dataArray.tofile(dataFile)
-dataFile.close()
+

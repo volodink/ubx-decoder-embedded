@@ -1,7 +1,7 @@
 import serial
 from time import sleep
 
-dataFile = open('data4.txt', 'rb')
+dataFile = open('data.txt', 'rb')
 
 data = dataFile.read()
 
