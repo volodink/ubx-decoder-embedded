@@ -47,13 +47,13 @@ platformio init -b nanoatmega328 --ide clion
 
 после чего открыть нормальными средствами среды.
 
-4. Собрать проект:
+Собрать проект:
 
 ```
 platformio run
 ```
 
-5. Загрузить на платформу
+Загрузить на платформу
 
 ```
 platformio run -t upload
