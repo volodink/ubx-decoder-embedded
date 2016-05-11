@@ -53,6 +53,11 @@ char bufer[20];
 unsigned char FixType = 22;
 unsigned char NumSVs = 33; /**< Number of SVs used in Nav Solution */
 
+int ledPin = 13;
+int fixStep = 0; /**< If parameter FixType is 0x02 or 0x03, this parameter makes the step */
+int nofixStep = 0; /**< If parameter FixType is not 0x02 or 0x03, this parameter makes the step */
+
+
 /**
  * \brief uBlox checksum algorithm
  * \param ubx_data Contains the data over
@@ -224,6 +229,21 @@ void decodeUBX(void)
             case 0x06:  // NAV-SOL
               NumSVs = message[47];          //кол-во спутников в решении
               FixType = message[10];        //тип фикса
+              
+              if (FixType == 0x02 || FixType == 0x03)
+              {
+                fixStep++;
+                nofixStep = 0;
+              }
+              else 
+              {
+                nofixStep++;
+                fixStep = 0;
+              }
+
+              if (fixStep == 12) digitalWrite(ledPin, HIGH);
+              if (nofixStep == 12) digitalWrite(ledPin, LOW);
+              
        //       mySerial.println(NumSVs);
        //       mySerial.println(FixType);
 
@@ -250,10 +270,10 @@ void decodeUBX(void)
 void sendGPS(void)
 {
     mySerial.print("A");
-    mySerial.print(longitudef, 5);
+    mySerial.print(longitudef, 6);
 
     mySerial.print("  B");
-    mySerial.print(latitudef, 5);
+    mySerial.print(latitudef, 6);
 
     mySerial.print("  C");
     mySerial.print(heightf, 3);
@@ -300,6 +320,7 @@ void clearVars(void)
 void setup() {
     Serial.begin(57600); /**< setup hardware serial for GPS side */
     mySerial.begin(9600);/**< setup hardware serial for GPS side */
+    pinMode(13, OUTPUT);
     mySerial.println("UBX ready.");
     clearVars();
 }
