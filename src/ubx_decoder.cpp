@@ -40,8 +40,14 @@ long int latitude; /**< Latitude */
 float latitudef; /**< Output latitude */
 long int height; /**< Height */
 float heightf; /**< Output height */
-long int speed3; /**< Longitude */
-float speed3f; /**< Speed */
+long int speed3; /**< Speed */
+float speed3f; /**< Output speed */
+long int hAcc; /**< Horizontal accuracy */
+float hAccf; /**< Output horizontal accuracy */
+long int vAcc; /**< Vertical accuracy */
+float vAccf; /**< Output vertical accuracy */
+long int pAcc; /**< 3D accuracy */
+float pAccf; /**< Output 3D accuracy */
 char bufer[20];
 
 /**
@@ -50,8 +56,8 @@ char bufer[20];
  * required for a GPS receiver to acquire
  * satellite signals and navigation data
  */
-unsigned char FixType = 22;
-unsigned char NumSVs = 33; /**< Number of SVs used in Nav Solution */
+unsigned char FixType;
+unsigned char NumSVs; /**< Number of SVs used in Nav Solution */
 
 int ledPin = 13;
 int fixStep = 0; /**< If parameter FixType is 0x02 or 0x03, this parameter makes the step */
@@ -210,6 +216,24 @@ void decodeUBX(void)
                 height |= message[16];
                 heightf = height / 1000.0;
 
+                hAcc = 0xFF & message[23];          //гор. точность
+                hAcc = hAcc << 8;
+                hAcc |= message[22];
+                hAcc = hAcc << 8;
+                hAcc |= message[21];
+                hAcc = hAcc << 8;
+                hAcc |= message[20];
+                hAccf = hAcc / 1000.0;
+                
+                vAcc = 0xFF & message[27];          //верт. точность
+                vAcc = vAcc << 8;
+                vAcc |= message[26];
+                vAcc = vAcc << 8;
+                vAcc |= message[25];
+                vAcc = vAcc << 8;
+                vAcc |= message[24];
+                vAccf = vAcc / 1000.0;
+
                 POSLLH = true;
   //            mySerial.println("POSLLH got.");
                 break;
@@ -227,8 +251,17 @@ void decodeUBX(void)
     //         mySerial.println("VELNED got.");
                 break;
             case 0x06:  // NAV-SOL
-              NumSVs = message[47];          //кол-во спутников в решении
-              FixType = message[10];        //тип фикса
+                NumSVs = message[47];          //кол-во спутников в решении
+                FixType = message[10];        //тип фикса
+
+                pAcc = 0xFF & message[27];        //3D точность
+                pAcc = pAcc << 8;
+                pAcc |= message[26];
+                pAcc = pAcc << 8;
+                pAcc |= message[25];
+                pAcc = pAcc << 8;
+                pAcc |= message[24];
+                pAccf = pAcc / 100.0;
               
               if (FixType == 0x02 || FixType == 0x03)
               {
@@ -258,12 +291,8 @@ void decodeUBX(void)
     
         }
     }
-    else
-    {
-   //   mySerial.print("Unknown ubx class = ");
- //     mySerial.println(UBX_class);
-    }
 }
+
 /**
 * \brief Function output data
 */
@@ -277,14 +306,23 @@ void sendGPS(void)
 
     mySerial.print("  C");
     mySerial.print(heightf, 3);
-    
+
     mySerial.print("  D");
     mySerial.print(speed3f, 3);
-    
+
     mySerial.print("  E");
-    mySerial.print(NumSVs);
+    mySerial.print(vAccf, 3);
     
     mySerial.print("  F");
+    mySerial.print(hAccf, 3);
+    
+    mySerial.print("  G");
+    mySerial.print(pAccf);
+    
+    mySerial.print("  H");
+    mySerial.print(NumSVs);
+    
+    mySerial.print("  I");
     mySerial.println(FixType);
     
     longitude = 0;
