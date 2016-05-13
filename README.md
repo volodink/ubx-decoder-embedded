@@ -1,7 +1,7 @@
 ### Формат выдачи
 
 ```
-AlatBlonCheightDspeedEsatallFsatsolGfixtype\n
+AlatBlonCheightDspeedEvAccFhAccGpAccHsatsolIfixtype\n
 ```
 
 lat      - широта
@@ -17,8 +17,6 @@ vAcc - вертикальная точность
 hAcc - горизонтальная точность
 
 pAcc - 3D точность
-
-satall - количество спутников (все)
 
 satsol - количество спутников (в решении)
 
