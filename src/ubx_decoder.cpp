@@ -7,7 +7,7 @@ void clearVars(void);
  */
 AltSoftSerial mySerial;
 
-volatile uint8_t message[512];
+volatile uint8_t message[512]; /**<  Maximum message size */
 
 /**
  * The first argument to calculate the checksum
@@ -21,10 +21,10 @@ uint8_t CK_AU = 0, CK_BU = 0; /**< The second argument to comparison the checksu
 int gpsStep = 0; /**< If the data suits us, this parameter makes the step */
 uint8_t UBX_id = 0; /**< Message ID */
 uint8_t UBX_class = 0; /**< Message class */
-uint8_t meslenL = 0;
-uint8_t meslenH = 0;
-int16_t meslen = 0;
-int count = 0;
+uint8_t meslenL = 0; /**< variable, with which compare a message */
+uint8_t meslenH = 0; /**< variable, which shifts to the left */
+int16_t meslen = 0; /**< variable, which assigned a message to its further comparisons */
+int count = 0; /**< Message size */
 boolean gotUBX = false; /**< The parameter which checks getting data */
 boolean POSLLH = 0; /**< Geodetic Position Solution; This message outputs
  * the Geodetic position in the currently selected Ellipsoid.
@@ -59,7 +59,7 @@ char bufer[20];
 unsigned char FixType;
 unsigned char NumSVs; /**< Number of SVs used in Nav Solution */
 
-int ledPin = 13;
+int ledPin = 13; /**< working pin */
 int fixStep = 0; /**< If parameter FixType is 0x02 or 0x03, this parameter makes the step */
 int nofixStep = 0; /**< If parameter FixType is not 0x02 or 0x03, this parameter makes the step */
 
