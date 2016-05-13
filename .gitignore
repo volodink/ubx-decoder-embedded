@@ -1,6 +1,9 @@
+.gitignore~
 .pioenvs
 
 *.md~
+Makefile~
+*.orig
 
 ### CLION ###
 *.iml

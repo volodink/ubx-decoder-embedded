@@ -69,8 +69,7 @@ int nofixStep = 0; /**< If parameter FixType is not 0x02 or 0x03, this parameter
  * \param ubx_data Contains the data over
  * which the checksum is to be calculated.
  */
-void ubx_checksum(byte ubx_data) //рассчет контрольной суммы
-{
+void ubx_checksum(byte ubx_data) { //рассчет контрольной суммы
     CK_A += ubx_data;
     CK_B += CK_A;
 }
@@ -78,103 +77,97 @@ void ubx_checksum(byte ubx_data) //рассчет контрольной сум�
 /**
  * \brief Getting and comparing data
  */
-void getUBX(void) //Получаем пакет и делаем с ним штуки
-{
-    if (Serial.available() > 0)
-    {
+void getUBX(void) { //Получаем пакет и делаем с ним штуки
+    if (Serial.available() > 0) {
         uint8_t c = Serial.read();
-        switch (gpsStep)
-        {
-            case 0:
-            
-                if (c == 0xB5){
-                    gpsStep++;
-    //                mySerial.print("Start 0xB5 ");
-                }
-                break;
-            
-            case 1:
-            
-                if (c == 0x62){
-                    gpsStep++;
-    //                          mySerial.print("Start 0x62 ");
-                }
-                else{
-                    gpsStep = 0;
-    //                        mySerial.println(" Error not62 ");
-                }
-                break;
-            
-            case 2:
-            
-                UBX_class = c;
-                ubx_checksum(c);
-                gpsStep++;
-    //                   mySerial.println(""); mySerial.print(" UBX_CLASS = "); mySerial.println(UBX_class);
-                break;
-            
-            case 3:
-            
-                UBX_id = c;
-                ubx_checksum(c);
-                gpsStep++;
-  //                     mySerial.println(""); mySerial.print(" UBX_id = "); mySerial.println(UBX_id);
-                break;
-            
-            case 4:
-            
-                meslenL = c;
-                ubx_checksum(c);
-                gpsStep++;
-    //                 mySerial.print(" ml ");
-                break;
-            
-            case 5:
-            
-                meslenH = c;
-                ubx_checksum(c);
-                gpsStep++;
-                meslen = 0xFF & meslenL;
-                meslen |= meslenH << 8;
-                count = 0;
-      //               mySerial.print(" mh ");
-     //                mySerial.print("mlen=");
-     //                mySerial.print(meslen);
-                break;
-            
-            case 6:
-            
-                message[count] = c;
-                ubx_checksum(c);
-                count++;
-                if (count == meslen)
-                {
-                    gpsStep++;
-                    count = 0;
-                }
-                break;
-            
-            case 7:
-            
-                CK_AU = c;
-                gpsStep++;
+        switch (gpsStep) {
+        case 0:
 
-                                
-    break;
-            
-            case 8:
-            
-                CK_BU = c;
-    
-  
-                if (CK_A == CK_AU && CK_B == CK_BU) //сравнение контрольной суммы
-                {
-                    gotUBX = true;
-                    gpsStep++;
-                }          
-                
-                break;
-            
+            if (c == 0xB5) {
+                gpsStep++;
+                //                mySerial.print("Start 0xB5 ");
+            }
+            break;
+
+        case 1:
+
+            if (c == 0x62) {
+                gpsStep++;
+                //                          mySerial.print("Start 0x62 ");
+            } else {
+                gpsStep = 0;
+                //                        mySerial.println(" Error not62 ");
+            }
+            break;
+
+        case 2:
+
+            UBX_class = c;
+            ubx_checksum(c);
+            gpsStep++;
+            //                   mySerial.println(""); mySerial.print(" UBX_CLASS = "); mySerial.println(UBX_class);
+            break;
+
+        case 3:
+
+            UBX_id = c;
+            ubx_checksum(c);
+            gpsStep++;
+            //                     mySerial.println(""); mySerial.print(" UBX_id = "); mySerial.println(UBX_id);
+            break;
+
+        case 4:
+
+            meslenL = c;
+            ubx_checksum(c);
+            gpsStep++;
+            //                 mySerial.print(" ml ");
+            break;
+
+        case 5:
+
+            meslenH = c;
+            ubx_checksum(c);
+            gpsStep++;
+            meslen = 0xFF & meslenL;
+            meslen |= meslenH << 8;
+            count = 0;
+            //               mySerial.print(" mh ");
+            //                mySerial.print("mlen=");
+            //                mySerial.print(meslen);
+            break;
+
+        case 6:
+
+            message[count] = c;
+            ubx_checksum(c);
+            count++;
+            if (count == meslen) {
+                gpsStep++;
+                count = 0;
+            }
+            break;
+
+        case 7:
+
+            CK_AU = c;
+            gpsStep++;
+
+
+            break;
+
+        case 8:
+
+            CK_BU = c;
+
+
+            if (CK_A == CK_AU && CK_B == CK_BU) { //сравнение контрольной суммы
+                gotUBX = true;
+                gpsStep++;
+            }
+
+            break;
+
         }
     }
 }
@@ -182,113 +175,107 @@ void getUBX(void) //Получаем пакет и делаем с ним шту
 /**
  * \brief UBX-decoder
  */
-void decodeUBX(void)
-{
-    if (UBX_class == 0x01)
-    {
-        switch (UBX_id)
-        {
-            case 0x02:  //NAV-POSLLH
-                longitude = 0xFF & message[7];       //долгота
-                longitude = longitude << 8;
-                longitude |= message[6];
-                longitude = longitude << 8;
-                longitude |= message[5];
-                longitude = longitude << 8;
-                longitude |= message[4];
-                longitudef = longitude / 10000000.0;
+void decodeUBX(void) {
+    if (UBX_class == 0x01) {
+        switch (UBX_id) {
+        case 0x02:  //NAV-POSLLH
+            longitude = 0xFF & message[7];       //долгота
+            longitude = longitude << 8;
+            longitude |= message[6];
+            longitude = longitude << 8;
+            longitude |= message[5];
+            longitude = longitude << 8;
+            longitude |= message[4];
+            longitudef = longitude / 10000000.0;
 
-                latitude = 0xFF & message[11];       //широта
-                latitude = latitude << 8;
-                latitude |= message[10];
-                latitude = latitude << 8;
-                latitude |= message[9];
-                latitude = latitude << 8;
-                latitude |= message[8];
-                latitudef = latitude / 10000000.0;
+            latitude = 0xFF & message[11];       //широта
+            latitude = latitude << 8;
+            latitude |= message[10];
+            latitude = latitude << 8;
+            latitude |= message[9];
+            latitude = latitude << 8;
+            latitude |= message[8];
+            latitudef = latitude / 10000000.0;
 
-                height = 0xFF & message[19];         //высота
-                height = height << 8;
-                height |= message[18];
-                height = height << 8;
-                height |= message[17];
-                height = height << 8;
-                height |= message[16];
-                heightf = height / 1000.0;
+            height = 0xFF & message[19];         //высота
+            height = height << 8;
+            height |= message[18];
+            height = height << 8;
+            height |= message[17];
+            height = height << 8;
+            height |= message[16];
+            heightf = height / 1000.0;
 
-                hAcc = 0xFF & message[23];          //гор. точность
-                hAcc = hAcc << 8;
-                hAcc |= message[22];
-                hAcc = hAcc << 8;
-                hAcc |= message[21];
-                hAcc = hAcc << 8;
-                hAcc |= message[20];
-                hAccf = hAcc / 1000.0;
-                
-                vAcc = 0xFF & message[27];          //верт. точность
-                vAcc = vAcc << 8;
-                vAcc |= message[26];
-                vAcc = vAcc << 8;
-                vAcc |= message[25];
-                vAcc = vAcc << 8;
-                vAcc |= message[24];
-                vAccf = vAcc / 1000.0;
+            hAcc = 0xFF & message[23];          //гор. точность
+            hAcc = hAcc << 8;
+            hAcc |= message[22];
+            hAcc = hAcc << 8;
+            hAcc |= message[21];
+            hAcc = hAcc << 8;
+            hAcc |= message[20];
+            hAccf = hAcc / 1000.0;
 
-                POSLLH = true;
-  //            mySerial.println("POSLLH got.");
-                break;
-            case 0x12:  //NAV-VELNED
-                speed3 = 0xFF & message[19];        //скорость
-                speed3 = speed3 << 8;
-                speed3 |= message[18];
-                speed3 = speed3 << 8;
-                speed3 |= message[17];
-                speed3 = speed3 << 8;
-                speed3 |= message[16];
-                speed3f = speed3 / 100.0;
+            vAcc = 0xFF & message[27];          //верт. точность
+            vAcc = vAcc << 8;
+            vAcc |= message[26];
+            vAcc = vAcc << 8;
+            vAcc |= message[25];
+            vAcc = vAcc << 8;
+            vAcc |= message[24];
+            vAccf = vAcc / 1000.0;
 
-                VELNED = true;
-    //         mySerial.println("VELNED got.");
-                break;
-            case 0x06:  // NAV-SOL
-                NumSVs = message[47];          //кол-во спутников в решении
-                FixType = message[10];        //тип фикса
+            POSLLH = true;
+            //            mySerial.println("POSLLH got.");
+            break;
+        case 0x12:  //NAV-VELNED
+            speed3 = 0xFF & message[19];        //скорость
+            speed3 = speed3 << 8;
+            speed3 |= message[18];
+            speed3 = speed3 << 8;
+            speed3 |= message[17];
+            speed3 = speed3 << 8;
+            speed3 |= message[16];
+            speed3f = speed3 / 100.0;
 
-                pAcc = 0xFF & message[27];        //3D точность
-                pAcc = pAcc << 8;
-                pAcc |= message[26];
-                pAcc = pAcc << 8;
-                pAcc |= message[25];
-                pAcc = pAcc << 8;
-                pAcc |= message[24];
-                pAccf = pAcc / 100.0;
-              
-              if (FixType == 0x02 || FixType == 0x03)
-              {
+            VELNED = true;
+            //         mySerial.println("VELNED got.");
+            break;
+        case 0x06:  // NAV-SOL
+            NumSVs = message[47];          //кол-во спутников в решении
+            FixType = message[10];        //тип фикса
+
+            pAcc = 0xFF & message[27];        //3D точность
+            pAcc = pAcc << 8;
+            pAcc |= message[26];
+            pAcc = pAcc << 8;
+            pAcc |= message[25];
+            pAcc = pAcc << 8;
+            pAcc |= message[24];
+            pAccf = pAcc / 100.0;
+
+            if (FixType == 0x02 || FixType == 0x03) {
                 fixStep++;
                 nofixStep = 0;
-              }
-              else 
-              {
+            } else {
                 nofixStep++;
                 fixStep = 0;
-              }
+            }
 
-              if (fixStep == 12) digitalWrite(ledPin, HIGH);
-              if (nofixStep == 12) digitalWrite(ledPin, LOW);
-              
-       //       mySerial.println(NumSVs);
-       //       mySerial.println(FixType);
+            if (fixStep == 12) digitalWrite(ledPin, HIGH);
+            if (nofixStep == 12) digitalWrite(ledPin, LOW);
 
-              SOL = true;
-        
-      //        mySerial.println("SOL got.");
-              
-              break;
-      //      default:
+            //       mySerial.println(NumSVs);
+            //       mySerial.println(FixType);
+
+            SOL = true;
+
+            //        mySerial.println("SOL got.");
+
+            break;
+            //      default:
 //            mySerial.print("Unknown ubx id = ");
- //           mySerial.println(UBX_id);
-    
+//           mySerial.println(UBX_id);
+
         }
     }
 }
@@ -296,8 +283,7 @@ void decodeUBX(void)
 /**
 * \brief Function output data
 */
-void sendGPS(void)
-{
+void sendGPS(void) {
     mySerial.print("A");
     mySerial.print(longitudef, 6);
 
@@ -312,19 +298,19 @@ void sendGPS(void)
 
     mySerial.print("  E");
     mySerial.print(vAccf, 3);
-    
+
     mySerial.print("  F");
     mySerial.print(hAccf, 3);
-    
+
     mySerial.print("  G");
     mySerial.print(pAccf);
-    
+
     mySerial.print("  H");
     mySerial.print(NumSVs);
-    
+
     mySerial.print("  I");
     mySerial.println(FixType);
-    
+
     longitude = 0;
     latitude = 0;
     height = 0;
@@ -335,8 +321,7 @@ void sendGPS(void)
 /**
 * \brief Data cleansing
 */
-void clearVars(void)
-{
+void clearVars(void) {
     gpsStep = 0;
     UBX_id = 0;
     UBX_class = 0;
@@ -346,9 +331,8 @@ void clearVars(void)
     CK_BU = 0;
     CK_A = 0;
     CK_B = 0;
-    for(int i = 0; i < 60; i++)
-    {
-      message[i] = 0;
+    for(int i = 0; i < 60; i++) {
+        message[i] = 0;
     }
 }
 /**
@@ -366,20 +350,17 @@ void setup() {
  *  \brief Running in the infinite loop
  *  \author volodink
  */
-void loop()
-{
+void loop() {
     //mySerial.println("enter loop");
-        
-    getUBX();
-    if (gotUBX == true)
-    {
-    //    mySerial.println("got ubx packet");
-        decodeUBX();
-    //    mySerial.println("ubx packet decoded");
-        if (POSLLH == 1 && VELNED == 1 && SOL == 1)
-        { 
 
-        //    mySerial.println("if posllh == 1");
+    getUBX();
+    if (gotUBX == true) {
+        //    mySerial.println("got ubx packet");
+        decodeUBX();
+        //    mySerial.println("ubx packet decoded");
+        if (POSLLH == 1 && VELNED == 1 && SOL == 1) {
+
+            //    mySerial.println("if posllh == 1");
             sendGPS();
             POSLLH = 0;
             VELNED = 0;

@@ -1,14 +1,14 @@
 all: clean build style
 
-
 build: 
-	 platformio run
+	platformio run
 
 run:
-	cd ./ubx-decoder-embedded && platformio run -t upload
+	platformio run -t upload
 
 clean:
 	rm -rf docs
+	platformio run -t clean
 	
 doc:
 	doxygen
