@@ -7,6 +7,8 @@ void clearVars(void);
  */
 AltSoftSerial mySerial;
 
+
+
 volatile uint8_t message[512]; /**<  Maximum message size */
 
 /**
