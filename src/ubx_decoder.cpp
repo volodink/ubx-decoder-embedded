@@ -1,13 +1,10 @@
 #include <AltSoftSerial.h>
-void clearVars(void);
 
 /**
  *  \brief Software serial port object
  *  \author volodink
  */
 AltSoftSerial mySerial;
-
-
 
 volatile uint8_t message[512]; /**<  Maximum message size */
 
@@ -65,6 +62,7 @@ int ledPin = 13; /**< working pin */
 int fixStep = 0; /**< If parameter FixType is 0x02 or 0x03, this parameter makes the step */
 int nofixStep = 0; /**< If parameter FixType is not 0x02 or 0x03, this parameter makes the step */
 
+void clearVars(void);
 
 /**
  * \brief uBlox checksum algorithm
