@@ -41,6 +41,8 @@ long int height; /**< Height */
 float heightf; /**< Output height */
 long int speed3; /**< Speed */
 float speed3f; /**< Output speed */
+long int heading; /**< Heading */
+float headingf; /**< Output heading */
 long int hAcc; /**< Horizontal accuracy */
 float hAccf; /**< Output horizontal accuracy */
 long int vAcc; /**< Vertical accuracy */
@@ -236,6 +238,16 @@ void decodeUBX(void) {
             speed3 = speed3 << 8;
             speed3 |= message[16];
             speed3f = speed3 / 100.0;
+            
+            heading = 0xFF & message[27];
+            heading = heading << 8;
+            heading |= message[26];
+            heading = heading << 8;
+            heading |= message[25];
+            heading = heading << 8;
+            heading |= message[24];
+            headingf = heading / 100000.0;
+            
 
             VELNED = true;
             //         mySerial.println("VELNED got.");
@@ -287,28 +299,31 @@ void sendGPS(void) {
     mySerial.print("A");
     mySerial.print(longitudef, 6);
 
-    mySerial.print("  B");
+    mySerial.print("B");
     mySerial.print(latitudef, 6);
 
-    mySerial.print("  C");
+    mySerial.print("C");
     mySerial.print(heightf, 3);
 
-    mySerial.print("  D");
+    mySerial.print("D");
     mySerial.print(speed3f, 3);
 
-    mySerial.print("  E");
+    mySerial.print("E");
     mySerial.print(vAccf, 3);
 
-    mySerial.print("  F");
+    mySerial.print("F");
     mySerial.print(hAccf, 3);
 
-    mySerial.print("  G");
+    mySerial.print("G");
     mySerial.print(pAccf);
+    
+    mySerial.print("H");
+    mySerial.print(headingf, 2)
 
-    mySerial.print("  H");
+    mySerial.print("I");
     mySerial.print(NumSVs);
 
-    mySerial.print("  I");
+    mySerial.print("J");
     mySerial.println(FixType);
 
     longitude = 0;
