@@ -1,2 +1,7 @@
 tasks:
   - init: make
+
+vscode:
+  extensions:
+    - platformio.platformio-ide@1.10.0:aIt2v3YhW3veGlO/Uthh3Q==
+    - ms-vscode.cpptools@0.27.0:z/UThvtoloHQ3y4wv5ptAw==
